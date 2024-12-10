@@ -164,31 +164,28 @@ fn part2_fast(m: &[i64]) -> usize {
     let mut checksum = 0;
     let mut file = (m.len() as i64 - 1) / 2;
     while let Some((file_idx, file_size)) = files.get(&file) {
-        let new_file_idx = {
-
-            let mut selected_blank = None;
-            for blank_size in *file_size..10 {
-                if let Some(&Reverse(blank_idx)) = blanks[blank_size].peek() {
-                    if blank_idx < *file_idx {
-                        selected_blank = match selected_blank {
-                            Some((a, b)) if b <= blank_idx => Some((a, b)),
-                            _ => Some((blank_size, blank_idx)),
-                        };
-                    }
+        let mut selected_blank = None;
+        for blank_size in *file_size..10 {
+            if let Some(&Reverse(blank_idx)) = blanks[blank_size].peek() {
+                if blank_idx < *file_idx {
+                    selected_blank = match selected_blank {
+                        Some((a, b)) if b <= blank_idx => Some((a, b)),
+                        _ => Some((blank_size, blank_idx)),
+                    };
                 }
             }
+        }
 
-            if let Some((blank_size, blank_idx)) = selected_blank {
-                blanks[blank_size].pop();
-                let remaining_size = blank_size - file_size;
-                let remaining_idx = blank_idx + file_size;
-                if remaining_size > 0 {
-                    blanks[remaining_size].push(Reverse(remaining_idx));
-                }
-                blank_idx
-            } else {
-                *file_idx
+        let new_file_idx = if let Some((blank_size, blank_idx)) = selected_blank {
+            blanks[blank_size].pop();
+            let remaining_size = blank_size - file_size;
+            let remaining_idx = blank_idx + file_size;
+            if remaining_size > 0 {
+                blanks[remaining_size].push(Reverse(remaining_idx));
             }
+            blank_idx
+        } else {
+            *file_idx
         };
 
         checksum += (sum_range(new_file_idx, *file_size) * file as usize);

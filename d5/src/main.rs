@@ -22,11 +22,10 @@ fn parse(path: &Path) -> Result<(DependencyGraph, UpdateList)> {
         }
 
         let (a, b) = scan_fmt::scan_fmt!(&line, "{}|{}", i32, i32)?;
-        dg.entry(b)
-            .and_modify(|v| {
-                v.insert(a);
-            })
-            .or_insert(HashSet::from([a]));
+        dg
+            .entry(b)
+            .or_default()
+            .insert(a);
     }
 
     for line in lines {

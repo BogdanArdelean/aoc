@@ -133,8 +133,8 @@ fn parse(path: &Path) -> Result<AntennaMap> {
             let loc = Location::new(rows, idx as i32);
             antennas
                 .entry(chr)
-                .and_modify(|v| v.push(loc))
-                .or_insert(vec![loc]);
+                .or_default()
+                .push(loc)
         }
 
         rows += 1;
