@@ -1,20 +1,25 @@
 use anyhow::Result;
+use std::cmp::Reverse;
+use std::collections::{BTreeMap, BinaryHeap, HashMap};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::iter::Rev;
 use std::path::Path;
 
 type Memory = Vec<i64>;
-fn parse(path: &Path) -> Result<Memory> {
+fn parse(path: &Path) -> Result<(Memory, Vec<i64>)> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 
     let mut memory = vec![];
+    let mut v = vec![];
     let mut is_file_block = true;
     let mut file_idx = -1;
     let line = reader.lines().next().unwrap()?;
     for chr in line.chars() {
         let size = (chr as i64) - '0' as i64;
 
+        v.push(size);
         let (content, next_file_idx) = match is_file_block {
             true => (file_idx, file_idx - 1),
             false => (0, file_idx),
@@ -28,7 +33,7 @@ fn parse(path: &Path) -> Result<Memory> {
         is_file_block = !is_file_block;
     }
 
-    Ok(memory)
+    Ok((memory, v))
 }
 
 fn get_next_free_block(m: &Memory, mut curr: usize) -> usize {
@@ -50,8 +55,7 @@ fn get_next_occupied_block(m: &Memory, mut curr: usize) -> usize {
 fn compact_memory(m: &Memory) -> Memory {
     let mut c_m = m.clone();
     let mut nx_free_idx = get_next_free_block(&c_m, 0);
-    let mut nx_occupied_idx =
-        get_next_occupied_block(&c_m, c_m.len() - 1);
+    let mut nx_occupied_idx = get_next_occupied_block(&c_m, c_m.len() - 1);
 
     while nx_free_idx < nx_occupied_idx {
         c_m[nx_free_idx] = c_m[nx_occupied_idx];
@@ -135,6 +139,65 @@ fn compact_memory_files(m: &Memory) -> Memory {
     c_m
 }
 
+fn sum_range(from: usize, size: usize) -> usize {
+    let to = from + size - 1;
+    (from..=to).sum()
+}
+
+fn part2_fast(m: &[i64]) -> usize {
+    let mut blanks: Vec<BinaryHeap<Reverse<usize>>> = vec![BinaryHeap::new(); 10];
+    let mut files = HashMap::<i64, (usize, usize)>::new();
+    {
+        let mut idx = 0;
+        for i in 0..m.len() {
+            let sz = m[i] as usize;
+            if i % 2 == 0 {
+                files.insert(i as i64 / 2, (idx, sz));
+            } else {
+                blanks[sz].push(Reverse(idx));
+            }
+
+            idx += sz;
+        }
+    }
+
+    let mut checksum = 0;
+    let mut file = (m.len() as i64 - 1) / 2;
+    while let Some((file_idx, file_size)) = files.get(&file) {
+        let new_file_idx = {
+
+            let mut selected_blank = None;
+            for blank_size in *file_size..10 {
+                if let Some(&Reverse(blank_idx)) = blanks[blank_size].peek() {
+                    if blank_idx < *file_idx {
+                        selected_blank = match selected_blank {
+                            Some((a, b)) if b <= blank_idx => Some((a, b)),
+                            _ => Some((blank_size, blank_idx)),
+                        };
+                    }
+                }
+            }
+
+            if let Some((blank_size, blank_idx)) = selected_blank {
+                blanks[blank_size].pop();
+                let remaining_size = blank_size - file_size;
+                let remaining_idx = blank_idx + file_size;
+                if remaining_size > 0 {
+                    blanks[remaining_size].push(Reverse(remaining_idx));
+                }
+                blank_idx
+            } else {
+                *file_idx
+            }
+        };
+
+        checksum += (sum_range(new_file_idx, *file_size) * file as usize);
+        file -= 1;
+    }
+
+    checksum
+}
+
 fn part1(m: &Memory) -> i64 {
     compact_memory(m)
         .iter()
@@ -152,11 +215,14 @@ fn part2(m: &Memory) -> i64 {
 }
 
 fn main() -> Result<()> {
-    let memory = parse(&Path::new("input.txt"))?;
+    let (memory, v) = parse(&Path::new("input.txt"))?;
     let p1 = part1(&memory);
     println!("Part 1 {}", p1);
 
+    println!("Part 2 fast {}", part2_fast(&v));
+
     let p2 = part2(&memory);
     println!("Part 2 {}", p2);
+
     Ok(())
 }
