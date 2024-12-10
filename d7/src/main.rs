@@ -36,23 +36,27 @@ fn conc(mut a: i64, mut b: i64) -> i64 {
     a + b
 }
 
-fn is_feasible(total: i64, nums: &Vec<i64>, acc: i64, i: usize) -> bool {
-    if total == acc && i == nums.len() {
-        return true;
+fn is_feasible<const PART2: bool>(total: i64, nums: &Vec<i64>, acc: i64, i: usize) -> bool
+{
+    if i == nums.len() {
+        return total == acc;
     }
 
-    if i >= nums.len() {
-        return false;
-    }
-
-    is_feasible(total, nums, acc + nums[i], i + 1)
-        || is_feasible(total, nums, acc * nums[i], i + 1)
-        || is_feasible(total, nums, conc(acc, nums[i]), i + 1)
+    is_feasible::<PART2>(total, nums, acc + nums[i], i + 1)
+        || is_feasible::<PART2>(total, nums, acc * nums[i], i + 1)
+        || (PART2 && is_feasible::<PART2>(total, nums, conc(acc, nums[i]), i + 1))
 }
 
 fn part1(eqs: &Vec<Equation>) -> i64 {
     eqs.iter()
-        .filter(|(t, nums)| is_feasible(*t, nums, nums[0], 1))
+        .filter(|(t, nums)| is_feasible::<false>(*t, nums, nums[0], 1))
+        .map(|a| a.0)
+        .sum()
+}
+
+fn part2(eqs: &Vec<Equation>) -> i64 {
+    eqs.iter()
+        .filter(|(t, nums)| is_feasible::<true>(*t, nums, nums[0], 1))
         .map(|a| a.0)
         .sum()
 }
@@ -61,5 +65,8 @@ fn main() -> Result<()> {
     let eqs = parse(&Path::new("input.txt"))?;
     let p1 = part1(&eqs);
     println!("Part 1 {}", p1);
+
+    let p2 = part2(&eqs);
+    println!("Part 2 {}", p2);
     Ok(())
 }
