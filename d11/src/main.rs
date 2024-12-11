@@ -30,19 +30,14 @@ fn simulate_stone(stone: i64, limit: i64, cache: &mut HashMap<(i64, i64), usize>
         return 1;
     }
 
-    if stone == 0 {
-        let r = simulate_stone(1, limit - 1, cache);
-        cache.insert((stone, limit), r);
-        return r;
-    }
+    let r = if stone == 0 {
+        simulate_stone(1, limit - 1, cache)
+    } else if let Some((s1, s2)) = split_stone(stone) {
+        simulate_stone(s1, limit - 1, cache) + simulate_stone(s2, limit - 1, cache)
+    } else {
+        simulate_stone(stone * 2024, limit - 1, cache)
+    };
 
-    if let Some((s1, s2)) = split_stone(stone) {
-        let r = simulate_stone(s1, limit - 1, cache) + simulate_stone(s2, limit - 1, cache);
-        cache.insert((stone, limit), r);
-        return r;
-    }
-
-    let r = simulate_stone(stone * 2024, limit - 1, cache);
     cache.insert((stone, limit), r);
     r
 }
