@@ -64,10 +64,38 @@ fn count_stones(stones: &Vec<i64>, limit: i64) -> usize {
         .sum()
 }
 
+fn count_stones_fast(stones: &Vec<i64>, limit: i64) -> usize {
+    let mut hm = HashMap::<i64, usize>::new();
+    for s in stones {
+        *hm.entry(*s).or_default() += 1;
+    }
+    for _ in 0..limit {
+        let mut hm_next = HashMap::new();
+        for (stone, count) in &hm {
+            let stone = *stone;
+            let count = *count;
+
+            if stone == 0 {
+                *hm_next.entry(1).or_default() += count;
+            } else if let Some((s1, s2)) = split_stone(stone) {
+                *hm_next.entry(s1).or_default() += count;
+                *hm_next.entry(s2).or_default() += count;
+            } else {
+                *hm_next.entry(stone * 2024).or_default() += count;
+            };
+        }
+        hm = hm_next
+    }
+
+    hm.values().sum()
+}
+
 fn main() -> Result<()> {
     let stones = parse(Path::new("input.txt"))?;
     println!("Part 1 {}", count_stones(&stones, 25));
 
     println!("Part 2 {}", count_stones(&stones, 75));
+
+    println!("Part 2 fast {}", count_stones_fast(&stones, 75));
     Ok(())
 }
