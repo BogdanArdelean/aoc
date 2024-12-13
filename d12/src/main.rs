@@ -139,7 +139,6 @@ fn part2(g: &Grid) -> usize {
     }
     sum
 }
-
 fn main() -> Result<()> {
     let grid = parse(Path::new("input.txt"))?;
     let p1 = part1(&grid);

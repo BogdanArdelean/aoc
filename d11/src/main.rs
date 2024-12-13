@@ -64,7 +64,7 @@ fn count_stones(stones: &Vec<i64>, limit: i64) -> usize {
         .sum()
 }
 
-fn count_stones_fast(stones: &Vec<i64>, limit: i64) -> usize {
+fn count_stones_iter(stones: &Vec<i64>, limit: i64) -> usize {
     let mut hm = HashMap::<i64, usize>::new();
     for s in stones {
         *hm.entry(*s).or_default() += 1;
@@ -96,6 +96,6 @@ fn main() -> Result<()> {
 
     println!("Part 2 {}", count_stones(&stones, 75));
 
-    println!("Part 2 fast {}", count_stones_fast(&stones, 75));
+    println!("Part 2 fast {}", count_stones_iter(&stones, 75));
     Ok(())
 }
