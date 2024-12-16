@@ -125,6 +125,10 @@ fn all_min_paths(from: Position, to: Position, g: &Grid) -> (i64, HashSet<Positi
 
     while let Some(e) = q.pop() {
         let (cost, (p, d)) = (e.cost, e.pd);
+        if cost > min_cost {
+            break;
+        }
+
         if viz.contains(&(p, d)) {
             continue;
         }
