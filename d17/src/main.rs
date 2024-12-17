@@ -68,25 +68,22 @@ impl Processor {
 
     fn step(&mut self, instructions: &Vec<i64>) -> Option<i64> {
         assert!(!self.halted(instructions));
-        assert!(self.A >= 0);
-        assert!(self.B >= 0);
-        assert!(self.C >= 0);
 
         let mut output = None;
-        let i = instructions[self.ip];
-        let op = instructions[self.ip + 1];
+        let i     = instructions[self.ip];
+        let op    = instructions[self.ip + 1];
         let value = self.get_operand_value(i, op);
 
         self.ip += 2;
         match i {
-            0 => self.A = (self.A >> value),
-            1 => self.B = self.B ^ value,
-            2 => self.B = value & 7,
+            0 => self.A  = self.A >> value,
+            1 => self.B  = self.B ^ value,
+            2 => self.B  = value & 7,
             3 => self.ip = if self.A != 0 { value as usize } else { self.ip },
-            4 => self.B = self.B ^ self.C,
-            5 => output = Some(value & 7),
-            6 => self.B = (self.A >> value),
-            7 => self.C = (self.A >> value),
+            4 => self.B  = self.B ^ self.C,
+            5 => output  = Some(value & 7),
+            6 => self.B  = self.A >> value,
+            7 => self.C  = self.A >> value,
             _ => panic!(),
         }
 
