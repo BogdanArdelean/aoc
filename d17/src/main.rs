@@ -69,10 +69,10 @@ impl Processor {
     fn step(&mut self, instructions: &Vec<i64>) -> Option<i64> {
         assert!(!self.halted(instructions));
 
-        let mut output = None;
-        let i     = instructions[self.ip];
-        let op    = instructions[self.ip + 1];
-        let value = self.get_operand_value(i, op);
+        let mut out = None;
+        let i       = instructions[self.ip];
+        let op      = instructions[self.ip + 1];
+        let value   = self.get_operand_value(i, op);
 
         self.ip += 2;
         match i {
@@ -81,13 +81,13 @@ impl Processor {
             2 => self.B  = value & 7,
             3 => self.ip = if self.A != 0 { value as usize } else { self.ip },
             4 => self.B  = self.B ^ self.C,
-            5 => output  = Some(value & 7),
+            5 => out     = Some(value & 7),
             6 => self.B  = self.A >> value,
             7 => self.C  = self.A >> value,
             _ => panic!(),
         }
 
-        output
+        out
     }
 
     fn execute(&mut self, instructions: &Vec<i64>) -> Vec<i64> {
