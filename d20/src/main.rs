@@ -111,35 +111,26 @@ fn cheat(
     min_diff: i64,
     from_finish: &HashMap<Position, i64>,
 ) -> i64 {
-    let mut viz = HashSet::new();
-    let mut q = VecDeque::new();
-
-    q.push_back(curr);
-    viz.insert(curr);
     let mut count = 0;
-    for i in 1..=blinks_rem {
-        let mut q_aux = VecDeque::new();
 
-        while let Some(p) = q.pop_front() {
-            for d in Direction::all() {
-                let np = p + d;
-                if !viz.contains(&np) {
-                    q_aux.push_back(np);
-                    viz.insert(np);
-                }
+    for x_i in -blinks_rem..=blinks_rem {
+        for y_i in -blinks_rem..=blinks_rem {
+            let np = Position {
+                x: curr.x + x_i,
+                y: curr.y + y_i,
+            };
+            let dist = (np.x - curr.x).abs() + (np.y - curr.y).abs();
+            if dist > blinks_rem {
+                continue;
             }
-        }
 
-        for np in &q_aux {
-            if let Some(cf) = from_finish.get(np) {
-                let nc = start_cost + *cf + i;
+            if let Some(cf) = from_finish.get(&np) {
+                let nc = start_cost + *cf + dist;
                 if cost - nc >= min_diff {
                     count += 1;
                 }
             }
         }
-
-        q = q_aux;
     }
 
     count
