@@ -7,7 +7,7 @@ use anyhow::Result;
 /*
     Sorry for the hardcoded map. Already had BFS implemented elsewhere and I generated the min paths.
  */
-fn keypad_to_directional(start: char, end: char) -> Vec<String> {
+fn all_paths(start: char, end: char) -> Vec<String> {
     let paths = HashMap::from([
         (('0', '0'), vec![String::from("A")]),
         (('0', 'A'), vec![String::from(">A")]),
@@ -130,13 +130,6 @@ fn keypad_to_directional(start: char, end: char) -> Vec<String> {
         (('9', '7'), vec![String::from("<<A")]),
         (('9', '8'), vec![String::from("<A")]),
         (('9', '9'), vec![String::from("A")]),
-    ]);
-
-    return paths.get(&(start, end)).unwrap().clone();
-}
-
-fn directional_to_directional(start: char, end:char) -> Vec<String> {
-    let paths = HashMap::from([
         (('<', '<'), vec![String::from("A")]),
         (('<', 'v'), vec![String::from(">A")]),
         (('<', '>'), vec![String::from(">>A")]),
@@ -167,44 +160,27 @@ fn directional_to_directional(start: char, end:char) -> Vec<String> {
     return paths.get(&(start, end)).unwrap().clone();
 }
 
-fn directional(steps: String, robots: i64, cache: &mut HashMap<(String, i64), usize>) -> usize {
+fn min_path_length(code: String, robots: i64, cache: &mut HashMap<(String, i64), usize>) -> usize {
     if robots == 0 {
-        return steps.len();
+        return code.len();
     }
-    if cache.contains_key(&(steps.clone(), robots)) {
-        return cache.get(&(steps, robots)).unwrap().clone();
+    if cache.contains_key(&(code.clone(), robots)) {
+        return cache.get(&(code, robots)).unwrap().clone();
     }
 
     let mut length = 0;
-    let mut start = 'A';
-    for end in steps.chars() {
-        let mut min_length = usize::MAX;
-        for path in directional_to_directional(start, end) {
-            let path_length = directional(path, robots - 1, cache);
-            min_length = min_length.min(path_length);
-        }
-        length += min_length;
-        start = end;
-    }
-
-    cache.insert((steps, robots), length);
-    length
-}
-
-fn numeric(code: &str, robots: i64) -> usize {
-    let mut length = 0;
-
-    let mut cache = HashMap::new();
     let mut start = 'A';
     for end in code.chars() {
         let mut min_length = usize::MAX;
-        for path in keypad_to_directional(start, end) {
-            let path_length = directional(path, robots, &mut cache);
+        for path in all_paths(start, end) {
+            let path_length = min_path_length(path, robots - 1, cache);
             min_length = min_length.min(path_length);
         }
         length += min_length;
         start = end;
     }
+
+    cache.insert((code, robots), length);
     length
 }
 
@@ -214,9 +190,10 @@ fn code_to_number(input: &str) -> usize {
 }
 
 fn enter_code(codes: &Vec<String>, robots: i64) -> usize {
+    let mut cache = HashMap::new();
     codes
         .iter()
-        .map(|c| numeric(c, robots))
+        .map(|c| min_path_length(c.clone(), robots + 1, &mut cache))
         .zip(codes)
         .map(|(l, c)| {
             l * code_to_number(c)
