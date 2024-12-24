@@ -1,0 +1,9 @@
+[package]
+name = "d24"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.95"
+itertools = "0.13.0"
+scan_fmt = "0.2.6"
