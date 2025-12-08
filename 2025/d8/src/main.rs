@@ -119,6 +119,40 @@ fn part2(points: &Vec<Point>, distances: &Vec<(i64, usize, usize)>) -> i64 {
     panic!("Can't be here!")
 }
 
+fn part2_opt(points: &Vec<Point>, distances: &Vec<(i64, usize, usize)>) -> i64 {
+    fn connect(cc: &mut Vec<usize>, cs: &mut Vec<usize>, a: usize, b: usize, target: usize) -> bool {
+        let a = find(cc, a);
+        let b = find(cc, b);
+
+        if cc[a] != cc[b] {
+            cs[a] += cs[b];
+        }
+
+        cc[b] = cc[a];
+
+        cs[a] == target
+    }
+    
+    let p_len = points.len();
+    let mut connected_components = vec![0; p_len];
+    let mut connected_sizes = vec![1; p_len];
+
+    // everyone is their parent
+    for i in 0..connected_components.len() {
+        connected_components[i] = i;
+    }
+
+    for &d in distances {
+        if connect(&mut connected_components, &mut connected_sizes, d.1, d.2, p_len) {
+            let a = points[d.1];
+            let b = points[d.2];
+            return a.x * b.x;
+        }
+    }
+
+    panic!("Can't be here!")
+}
+
 fn main() {
     let points = parse(&Path::new("input.txt"));
     let distances = compute_distances(&points);
@@ -126,6 +160,6 @@ fn main() {
     let p1 = part1(&points, &distances, 1000);
     println!("part 1: {}", p1);
 
-    let p2 = part2(&points, &distances);
+    let p2 = part2_opt(&points, &distances);
     println!("part 2: {}", p2);
 }
