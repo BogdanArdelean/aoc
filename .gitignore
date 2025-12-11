@@ -1,5 +1,4 @@
-input.txt
-example.txt
+*.txt
 .idea
 target
 .DS_Store
